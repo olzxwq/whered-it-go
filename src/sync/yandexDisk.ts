@@ -97,9 +97,40 @@ export async function downloadData(token: string): Promise<unknown | null> {
   if (res.status === 404) return null;
   if (!res.ok) throw new Error(`Диск ответил ошибкой ${res.status}`);
   const { href } = (await res.json()) as { href: string };
-  const file = await request('скачивание файла', href);
+  const file = await fetchFile(href, token);
   if (!file.ok) throw new Error(`Не удалось скачать файл с Диска (${file.status})`);
   return file.json();
+}
+
+/**
+ * Safari на iPhone иногда не пускает обычный запрос к серверу скачивания («Load failed»),
+ * хотя Chrome его пропускает. Пробуем несколько вариантов запроса по очереди.
+ */
+const DOWNLOAD_VARIANTS: { name: string; init: (token: string) => RequestInit }[] = [
+  { name: 'обычный', init: () => ({}) },
+  { name: 'с ключом доступа', init: (token) => ({ headers: { Authorization: `OAuth ${token}` } }) },
+  { name: 'без кэша и Referer', init: () => ({ cache: 'no-store', credentials: 'omit', referrerPolicy: 'no-referrer' }) },
+];
+const VARIANT_KEY = 'yadisk-download-variant';
+
+async function fetchFile(href: string, token: string): Promise<Response> {
+  // Сначала тот вариант, что сработал в прошлый раз на этом устройстве
+  const saved = Number(localStorage.getItem(VARIANT_KEY)) || 0;
+  const order = [saved, ...DOWNLOAD_VARIANTS.keys()].filter((v, i, a) => a.indexOf(v) === i && DOWNLOAD_VARIANTS[v]);
+  const errors: string[] = [];
+  for (const i of order) {
+    const v = DOWNLOAD_VARIANTS[i];
+    try {
+      const res = await fetch(href, v.init(token));
+      localStorage.setItem(VARIANT_KEY, String(i));
+      if (errors.length) console.info(`Скачивание сработало вариантом «${v.name}» после ошибок:`, errors);
+      return res;
+    } catch (e) {
+      errors.push(`${v.name}: ${e instanceof Error ? e.message : String(e)}`);
+    }
+  }
+  console.error('Скачивание файла не удалось ни одним вариантом:', errors);
+  throw new NetworkError('скачивание файла', new Error(errors.join('; ')));
 }
 
 export async function uploadData(token: string, data: unknown): Promise<void> {
