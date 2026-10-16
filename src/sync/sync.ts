@@ -4,7 +4,7 @@
 import { useSyncExternalStore } from 'react';
 import { db } from '../data/db';
 import { emptySnapshot, isSnapshot, merge, TABLES, type Snapshot } from './merge';
-import { AuthError, clearToken, downloadData, getToken, saveToken, uploadData } from './yandexDisk';
+import { AuthError, clearToken, downloadData, getToken, NetworkError, saveToken, uploadData } from './yandexDisk';
 
 export interface SyncStatus {
   connected: boolean;
@@ -91,8 +91,9 @@ export function syncNow(): Promise<void> {
           setStatus({ connected: false, syncing: false, error: e.message });
           return;
         }
-        const offline = e instanceof TypeError; // fetch не достучался до сервера
-        setStatus({ syncing: false, error: offline ? 'Нет связи с Диском — синхронизирую позже' : (e as Error).message });
+        // Для сетевых ошибок показываем шаг и текст от браузера — по ним видно, что именно не прошло
+        const msg = e instanceof NetworkError ? `Нет связи с Диском (${e.message}). Попробую позже` : (e as Error).message;
+        setStatus({ syncing: false, error: msg });
         again = false;
       }
     } while (again);

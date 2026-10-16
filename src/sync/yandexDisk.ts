@@ -65,30 +65,47 @@ export function handleLoginRedirect(): void {
 
 // ---------- Файл на Диске ----------
 
-async function api(path: string, token: string): Promise<Response> {
-  const res = await fetch(`${API}/${path}`, { headers: { Authorization: `OAuth ${token}` } });
+/** Запрос не дошёл до сервера (нет сети или браузер его заблокировал). step — на каком шаге. */
+export class NetworkError extends Error {
+  constructor(
+    public step: string,
+    cause: unknown,
+  ) {
+    super(`${step}: ${cause instanceof Error ? cause.message : String(cause)}`);
+  }
+}
+
+/** fetch, который при сетевой ошибке сообщает, на каком шаге она случилась. */
+async function request(step: string, url: string, init?: RequestInit): Promise<Response> {
+  try {
+    return await fetch(url, init);
+  } catch (e) {
+    console.error(`Синхронизация, шаг «${step}»:`, url.split('?')[0], e);
+    throw new NetworkError(step, e);
+  }
+}
+
+async function api(step: string, path: string, token: string): Promise<Response> {
+  const res = await request(step, `${API}/${path}`, { headers: { Authorization: `OAuth ${token}` } });
   if (res.status === 401 || res.status === 403) throw new AuthError('Доступ к Диску больше не действует — подключите заново');
   return res;
 }
 
 /** Скачивает data.json. null — файла ещё нет (первая синхронизация). */
 export async function downloadData(token: string): Promise<unknown | null> {
-  const res = await api(`download?path=${encodeURIComponent(FILE)}`, token);
+  const res = await api('ссылка на скачивание', `download?path=${encodeURIComponent(FILE)}`, token);
   if (res.status === 404) return null;
   if (!res.ok) throw new Error(`Диск ответил ошибкой ${res.status}`);
   const { href } = (await res.json()) as { href: string };
-  const file = await fetch(href);
+  const file = await request('скачивание файла', href);
   if (!file.ok) throw new Error(`Не удалось скачать файл с Диска (${file.status})`);
   return file.json();
 }
 
 export async function uploadData(token: string, data: unknown): Promise<void> {
-  const res = await api(`upload?path=${encodeURIComponent(FILE)}&overwrite=true`, token);
+  const res = await api('ссылка на загрузку', `upload?path=${encodeURIComponent(FILE)}&overwrite=true`, token);
   if (!res.ok) throw new Error(`Диск ответил ошибкой ${res.status}`);
   const { href, method } = (await res.json()) as { href: string; method: string };
-  const put = await fetch(href, { method: method || 'PUT', body: JSON.stringify(data) }).catch((e: unknown) => {
-    console.error('Загрузка на сервер Диска заблокирована:', e);
-    throw new Error('Яндекс Диск не принял файл от сайта (сервер загрузки отклонил запрос)');
-  });
+  const put = await request('загрузка файла', href, { method: method || 'PUT', body: JSON.stringify(data) });
   if (!put.ok) throw new Error(`Не удалось загрузить файл на Диск (${put.status})`);
 }
