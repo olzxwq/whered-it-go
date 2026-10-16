@@ -2,7 +2,7 @@
 // Сайт получает доступ ТОЛЬКО к своей папке «Приложения/Where'd It Go», остальные файлы ему не видны.
 
 /** ClientID приложения с oauth.yandex.ru. Он не секретный: его видит любой, кто открывает страницу входа. */
-export const YANDEX_CLIENT_ID = '';
+export const YANDEX_CLIENT_ID = '8516e839c92c4169af2f842d5580b5a1';
 
 const API = 'https://cloud-api.yandex.net/v1/disk/resources';
 const FILE = 'app:/data.json';
@@ -86,6 +86,9 @@ export async function uploadData(token: string, data: unknown): Promise<void> {
   const res = await api(`upload?path=${encodeURIComponent(FILE)}&overwrite=true`, token);
   if (!res.ok) throw new Error(`Диск ответил ошибкой ${res.status}`);
   const { href, method } = (await res.json()) as { href: string; method: string };
-  const put = await fetch(href, { method: method || 'PUT', body: JSON.stringify(data) });
+  const put = await fetch(href, { method: method || 'PUT', body: JSON.stringify(data) }).catch((e: unknown) => {
+    console.error('Загрузка на сервер Диска заблокирована:', e);
+    throw new Error('Яндекс Диск не принял файл от сайта (сервер загрузки отклонил запрос)');
+  });
   if (!put.ok) throw new Error(`Не удалось загрузить файл на Диск (${put.status})`);
 }
