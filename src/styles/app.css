@@ -55,9 +55,13 @@ p {
 }
 
 .main {
+  padding: calc(16px + env(safe-area-inset-top)) 16px calc(104px + env(safe-area-inset-bottom));
+}
+
+/* Содержимое по центру области справа от меню, но не шире 1120px */
+.main-inner {
   max-width: 1120px;
   margin: 0 auto;
-  padding: calc(16px + env(safe-area-inset-top)) 16px calc(104px + env(safe-area-inset-bottom));
 }
 
 .page-head {

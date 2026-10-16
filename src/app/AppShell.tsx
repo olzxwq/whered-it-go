@@ -46,7 +46,9 @@ export function AppShell({ children }: { children: ReactNode }) {
         </div>
       </aside>
 
-      <main className="main">{children}</main>
+      <main className="main">
+        <div className="main-inner">{children}</div>
+      </main>
 
       <nav className="tabbar" aria-label="Меню">
         {NAV.slice(0, 2).map((n) => (
