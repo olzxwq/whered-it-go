@@ -84,6 +84,121 @@ export const listCategories = async (): Promise<Category[]> => alive(await db.ca
 export const listSources = async (): Promise<Source[]> => alive(await db.sources.toArray()).sort(byCreated);
 export const listCards = async (): Promise<Card[]> => alive(await db.cards.toArray()).sort(byCreated);
 
+const MAX_NAME = 40;
+
+/** Убирает лишние пробелы и проверяет длину. */
+function cleanName(raw: string, what: string): string {
+  const name = raw.trim().replace(/\s+/g, ' ');
+  if (!name) throw new Error(`Введите ${what}`);
+  if (name.length > MAX_NAME) throw new Error(`Не длиннее ${MAX_NAME} символов`);
+  return name;
+}
+
+// Категории и источники устроены одинаково, поэтому код для них общий.
+export type NamedKind = 'categories' | 'sources';
+
+const KIND = {
+  categories: { field: 'categoryId', what: 'название категории', dup: 'Такая категория уже есть', last: 'Нельзя удалить последнюю категорию' },
+  sources: { field: 'sourceId', what: 'название источника', dup: 'Такой источник уже есть', last: 'Нельзя удалить последний источник' },
+} as const;
+
+/** Названия не должны повторяться: «Кафе» = «кафе» = « кафе ». */
+async function assertUniqueName(kind: NamedKind, name: string, exceptId?: string): Promise<void> {
+  const items = alive(await db[kind].toArray());
+  if (items.some((x) => x.id !== exceptId && titleKey(x.name) === titleKey(name))) throw new Error(KIND[kind].dup);
+}
+
+export async function addNamed(kind: NamedKind, rawName: string): Promise<void> {
+  const name = cleanName(rawName, KIND[kind].what);
+  await db.transaction('rw', db[kind], async () => {
+    await assertUniqueName(kind, name);
+    const now = Date.now();
+    await db[kind].add({ id: uuid(), name, createdAt: now, updatedAt: now, deleted: false });
+  });
+}
+
+/** Расходы хранят id, поэтому новое имя сразу видно во всех старых записях. */
+export async function renameNamed(kind: NamedKind, id: string, rawName: string): Promise<void> {
+  const name = cleanName(rawName, KIND[kind].what);
+  await db.transaction('rw', db[kind], async () => {
+    await assertUniqueName(kind, name, id);
+    await db[kind].update(id, { name, updatedAt: Date.now() });
+  });
+}
+
+/**
+ * Удаляет категорию или источник. Если к ним привязаны расходы,
+ * нужно указать moveToId — туда расходы переносятся в той же транзакции.
+ */
+export async function deleteNamed(kind: NamedKind, id: string, moveToId?: string): Promise<void> {
+  const { field, last } = KIND[kind];
+  await db.transaction('rw', [db[kind], db.expenses, db.settings], async () => {
+    const items = alive(await db[kind].toArray());
+    if (!items.some((x) => x.id === id)) throw new Error('Не найдено');
+    if (items.length <= 1) throw new Error(last);
+
+    const linked = await db.expenses.filter((e) => e[field] === id).toArray();
+    if (linked.some((e) => !e.deleted)) {
+      if (!moveToId || moveToId === id || !items.some((x) => x.id === moveToId)) throw new Error('Выберите, куда перенести расходы');
+    }
+    const now = Date.now();
+    // Переносим и «надгробия» тоже, чтобы не осталось ссылок на удалённое
+    for (const e of linked) {
+      await db.expenses.update(e.id, { [field]: moveToId ?? items.find((x) => x.id !== id)!.id, updatedAt: now });
+    }
+    await db[kind].update(id, { deleted: true, updatedAt: now });
+
+    if (kind === 'sources' && (await getSetting<string>('lastSourceId')) === id) {
+      await setSetting('lastSourceId', moveToId ?? items.find((x) => x.id !== id)!.id);
+    }
+  });
+}
+
+// ---------- Карты ----------
+
+export interface CardInput {
+  bank: string;
+  name: string;
+}
+
+function cleanCard(input: CardInput): { bank: string; name: string | null } {
+  const bank = cleanName(input.bank, 'банк');
+  const name = input.name.trim().replace(/\s+/g, ' ');
+  if (name.length > MAX_NAME) throw new Error(`Не длиннее ${MAX_NAME} символов`);
+  return { bank, name: name || null };
+}
+
+export async function addCard(input: CardInput): Promise<void> {
+  const now = Date.now();
+  await db.cards.add({ ...cleanCard(input), id: uuid(), createdAt: now, updatedAt: now, deleted: false });
+}
+
+export async function updateCard(id: string, input: CardInput): Promise<void> {
+  await db.cards.update(id, { ...cleanCard(input), updatedAt: Date.now() });
+}
+
+/** У расходов просто убирается привязка к карте. */
+export async function deleteCard(id: string): Promise<void> {
+  await db.transaction('rw', [db.cards, db.expenses], async () => {
+    const now = Date.now();
+    const linked = await db.expenses.filter((e) => e.cardId === id).toArray();
+    for (const e of linked) await db.expenses.update(e.id, { cardId: null, updatedAt: now });
+    await db.cards.update(id, { deleted: true, updatedAt: now });
+  });
+}
+
+/** Сколько расходов привязано к каждой категории, источнику и карте. */
+export async function expenseCounts(): Promise<Map<string, number>> {
+  const counts = new Map<string, number>();
+  const bump = (id: string | null) => id && counts.set(id, (counts.get(id) ?? 0) + 1);
+  for (const e of alive(await db.expenses.toArray())) {
+    bump(e.categoryId);
+    bump(e.sourceId);
+    bump(e.cardId);
+  }
+  return counts;
+}
+
 // ---------- Расходы ----------
 
 export interface ExpenseInput {

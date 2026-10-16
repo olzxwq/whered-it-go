@@ -446,6 +446,48 @@ p {
   margin-top: 16px;
 }
 
+/* ---------- Списки в профиле ---------- */
+
+.item-list {
+  display: block;
+}
+
+.item-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 52px;
+  padding: 0 4px;
+  border: 0;
+  border-bottom: 1px solid var(--border);
+  background: none;
+  text-align: left;
+  color: var(--text);
+}
+
+.item-row:last-child {
+  border-bottom: 0;
+}
+
+.item-row:active {
+  background: var(--field);
+}
+
+.item-name {
+  flex: 1;
+  min-width: 0;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.item-count {
+  font-size: 13px;
+  white-space: nowrap;
+}
+
 /* ---------- Кнопки и поля ---------- */
 
 .btn {

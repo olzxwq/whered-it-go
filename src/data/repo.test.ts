@@ -47,10 +47,66 @@ describe('расходы', () => {
     expect((await db.expenses.get(a.id))?.deleted).toBe(true);
   });
 
-  it('отклоняет нулевую сумму, чужую категорию и кривую дату', async () => {
+  it('отклоняет нулевую сумму, несуществующую категорию и кривую дату', async () => {
     const ok = { ...base, amountKop: 100, categoryId: 'cat-cafe', sourceId: 'src-stipend', spentOn: '2026-10-16' };
     await expect(repo.addExpense({ ...ok, amountKop: 0 })).rejects.toThrow();
     await expect(repo.addExpense({ ...ok, categoryId: 'nope' })).rejects.toThrow();
     await expect(repo.addExpense({ ...ok, spentOn: '2026-02-30' })).rejects.toThrow();
+  });
+});
+
+describe('категории и источники', () => {
+  beforeEach(async () => {
+    await repo.completeOnboarding(['Стипендия', 'Родители']);
+  });
+
+  it('добавляет и переименовывает, не допуская одинаковых названий', async () => {
+    await repo.addNamed('categories', '  Хобби ');
+    await expect(repo.addNamed('categories', 'хобби')).rejects.toThrow('Такая категория уже есть');
+    await expect(repo.addNamed('categories', 'УЧЕБА')).rejects.toThrow(); // ё = е
+    await expect(repo.renameNamed('sources', 'src-parents', 'стипендия')).rejects.toThrow('Такой источник уже есть');
+
+    await repo.renameNamed('categories', 'cat-cafe', 'Кафе');
+    const names = (await repo.listCategories()).map((c) => c.name);
+    expect(names).toContain('Хобби');
+    expect(names).toContain('Кафе');
+    // переименование в то же имя другим регистром — можно
+    await repo.renameNamed('categories', 'cat-cafe', 'КАФЕ');
+  });
+
+  it('не удаляет последний источник', async () => {
+    await repo.deleteNamed('sources', 'src-parents');
+    await expect(repo.deleteNamed('sources', 'src-stipend')).rejects.toThrow('Нельзя удалить последний источник');
+  });
+
+  it('при удалении требует выбрать, куда перенести расходы, и переносит их', async () => {
+    const e = await repo.addExpense({ ...base, amountKop: 100, categoryId: 'cat-cafe', sourceId: 'src-parents', spentOn: '2026-10-16' });
+    await expect(repo.deleteNamed('sources', 'src-parents')).rejects.toThrow('Выберите, куда перенести');
+    await repo.deleteNamed('sources', 'src-parents', 'src-stipend');
+    expect((await db.expenses.get(e.id))?.sourceId).toBe('src-stipend');
+    expect((await repo.listSources()).map((s) => s.id)).toEqual(['src-stipend']);
+    expect(await repo.getSetting('lastSourceId')).toBe('src-stipend');
+  });
+});
+
+describe('карты', () => {
+  beforeEach(async () => {
+    await repo.completeOnboarding(['Стипендия']);
+  });
+
+  it('добавляет без номера, переименовывает и при удалении отвязывает расходы', async () => {
+    await expect(repo.addCard({ bank: '  ', name: 'Кредитка' })).rejects.toThrow();
+    await repo.addCard({ bank: 'Т-Банк', name: '' });
+    const [card] = await repo.listCards();
+    expect(card.name).toBeNull();
+
+    await repo.updateCard(card.id, { bank: 'Т-Банк', name: 'Зарплатная' });
+    expect((await repo.listCards())[0].name).toBe('Зарплатная');
+
+    const e = await repo.addExpense({ ...base, cardId: card.id, amountKop: 100, categoryId: 'cat-cafe', sourceId: 'src-stipend', spentOn: '2026-10-16' });
+    expect((await repo.expenseCounts()).get(card.id)).toBe(1);
+    await repo.deleteCard(card.id);
+    expect((await db.expenses.get(e.id))?.cardId).toBeNull();
+    expect(await repo.listCards()).toEqual([]);
   });
 });
