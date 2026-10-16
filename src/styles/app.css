@@ -58,9 +58,9 @@ p {
   padding: calc(16px + env(safe-area-inset-top)) 16px calc(104px + env(safe-area-inset-bottom));
 }
 
-/* Содержимое по центру области справа от меню, но не шире 1120px */
+/* Содержимое по центру области справа от меню, но не шире 1600px */
 .main-inner {
-  max-width: 1120px;
+  max-width: 1600px;
   margin: 0 auto;
 }
 
