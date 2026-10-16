@@ -2,6 +2,7 @@
 import { useTheme, type ThemeChoice } from '../app/theme';
 import { CardsCard } from '../components/CardsCard';
 import { NamedListCard } from '../components/NamedListCard';
+import { SyncCard } from '../components/SyncCard';
 import { useNames } from '../data/hooks';
 import * as repo from '../data/repo';
 import { downloadText, expensesToCsv } from '../lib/csv';
@@ -30,6 +31,7 @@ export function Profile() {
       <div className="grid grid-2">
         <NamedListCard kind="categories" />
         <div className="grid">
+          <SyncCard />
           <NamedListCard kind="sources" />
           <CardsCard />
           <section className="card">

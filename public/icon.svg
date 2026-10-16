@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- Значок приложения: лаймовый фон и кошелёк тёмно-зелёным (цвета из палитры) -->
+  <rect width="512" height="512" fill="#E3EF26"/>
+  <g transform="translate(106 106) scale(12.5)" fill="none" stroke="#0C342C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M3 7a2 2 0 0 1 2-2h13v4M3 7v10a2 2 0 0 0 2 2h15V9H5a2 2 0 0 1-2-2zM16 14h.01"/>
+  </g>
+</svg>

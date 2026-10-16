@@ -10,8 +10,15 @@ import { createRoot } from 'react-dom/client';
 import { App } from './App';
 import { ThemeProvider } from './app/theme';
 
+import { initSync } from './sync/sync';
+import { handleLoginRedirect } from './sync/yandexDisk';
+
 // Просим браузер не стирать данные сайта при нехватке места (важно для Safari)
 navigator.storage?.persist?.().catch(() => {});
+
+// Если вернулись со страницы входа Яндекса — забираем токен, затем запускаем синхронизацию
+handleLoginRedirect();
+initSync();
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
