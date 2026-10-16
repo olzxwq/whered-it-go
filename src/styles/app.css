@@ -1,0 +1,766 @@
+/* Общие стили. Сначала — для телефона, ниже — расширения для iPad (≥768px) и ноутбука (≥1024px). */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 15px;
+  line-height: 1.4;
+  -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
+}
+
+button,
+input,
+select {
+  font: inherit;
+  color: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+h1,
+h2,
+h3,
+p {
+  margin: 0;
+}
+
+.num {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.muted {
+  color: var(--text-2);
+}
+
+/* ---------- Каркас ---------- */
+
+.shell {
+  min-height: 100dvh;
+}
+
+.main {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: calc(16px + env(safe-area-inset-top)) 16px calc(104px + env(safe-area-inset-bottom));
+}
+
+.page-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+  min-height: 44px;
+}
+
+.page-title {
+  font-size: 26px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+/* Нижняя панель (телефон) */
+.tabbar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 20;
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  align-items: center;
+  padding: 8px 8px calc(8px + env(safe-area-inset-bottom));
+  background: var(--card);
+  border-top: 1px solid var(--border);
+}
+
+.tab {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 6px 0;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-2);
+  text-decoration: none;
+}
+
+.tab.active {
+  color: var(--text);
+}
+
+.tab.active .tab-icon {
+  background: var(--soft);
+  color: var(--on-soft);
+}
+
+.tab-icon {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 28px;
+  border-radius: 999px;
+}
+
+.tab-add {
+  justify-self: center;
+  display: grid;
+  place-items: center;
+  width: 56px;
+  height: 56px;
+  margin-top: -24px;
+  border: 4px solid var(--bg);
+  border-radius: 50%;
+  background: var(--primary);
+  color: var(--on-primary);
+  box-shadow: var(--shadow);
+}
+
+/* Боковое меню (iPad и ноутбук) */
+.sidebar {
+  display: none;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 800;
+  font-size: 17px;
+  letter-spacing: -0.01em;
+}
+
+.brand-mark {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: #e3ef26;
+  color: #0c342c;
+}
+
+@media (min-width: 768px) {
+  .tabbar {
+    display: none;
+  }
+
+  .sidebar {
+    position: fixed;
+    inset: 0 auto 0 0;
+    z-index: 20;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    width: 84px;
+    padding: calc(20px + env(safe-area-inset-top)) 12px 20px;
+    background: var(--card);
+    border-right: 1px solid var(--border);
+  }
+
+  .sidebar .brand {
+    justify-content: center;
+    margin-bottom: 16px;
+  }
+
+  .sidebar .brand-name,
+  .side-link span,
+  .side-add span {
+    display: none;
+  }
+
+  .side-link,
+  .side-add {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    height: 48px;
+    border-radius: 999px;
+    color: var(--text-2);
+    font-weight: 600;
+    text-decoration: none;
+    border: 0;
+    background: none;
+  }
+
+  .side-link.active {
+    background: var(--soft);
+    color: var(--on-soft);
+  }
+
+  .side-add {
+    margin-top: 8px;
+    background: var(--primary);
+    color: var(--on-primary);
+  }
+
+  .side-bottom {
+    margin-top: auto;
+  }
+
+  .main {
+    margin-left: 84px;
+    padding: 28px 28px 40px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .sidebar {
+    width: 240px;
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+
+  .sidebar .brand {
+    justify-content: flex-start;
+  }
+
+  .sidebar .brand-name,
+  .side-link span,
+  .side-add span {
+    display: inline;
+  }
+
+  .side-link,
+  .side-add {
+    justify-content: flex-start;
+    padding: 0 16px;
+  }
+
+  .main {
+    margin-left: 240px;
+    padding: 32px 40px 48px;
+  }
+}
+
+/* ---------- Карточки ---------- */
+
+.grid {
+  display: grid;
+  gap: 16px;
+}
+
+/* Без этого длинный текст растягивает колонку шире экрана */
+.grid > * {
+  min-width: 0;
+}
+
+@media (min-width: 768px) {
+  .grid-2 {
+    grid-template-columns: 1fr 1fr;
+    align-items: start;
+  }
+
+  .span-2 {
+    grid-column: span 2;
+  }
+}
+
+.card {
+  background: var(--card);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  box-shadow: var(--shadow);
+}
+
+.card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.card-title {
+  font-size: 17px;
+  font-weight: 700;
+}
+
+.hero {
+  background: var(--hero);
+  color: var(--on-hero);
+  border-radius: var(--radius-lg);
+  padding: 22px 20px 20px;
+}
+
+.hero-label {
+  font-weight: 600;
+  opacity: 0.8;
+}
+
+.hero-amount {
+  margin: 6px 0 16px;
+  font-size: clamp(36px, 11vw, 52px);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1.05;
+}
+
+.progress {
+  height: 8px;
+  border-radius: 999px;
+  background: var(--hero-track);
+  overflow: hidden;
+}
+
+.progress-bar {
+  height: 100%;
+  border-radius: 999px;
+  background: var(--on-hero);
+  transition: width 0.3s;
+}
+
+.progress-bar.over {
+  background: #c62828;
+}
+
+.hero-compare {
+  margin-top: 8px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+/* Строки «источник — сумма» */
+.rows {
+  display: grid;
+  gap: 14px;
+}
+
+.row-top {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-weight: 600;
+}
+
+.row-bar {
+  margin-top: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--field);
+  overflow: hidden;
+}
+
+.row-bar > div {
+  height: 100%;
+  border-radius: 999px;
+  background: var(--primary);
+}
+
+/* ---------- Список расходов ---------- */
+
+.expense-list {
+  display: block; /* не grid: иначе длинное название растягивает список шире карточки */
+}
+
+.day-head {
+  display: flex;
+  justify-content: space-between;
+  padding: 16px 4px 6px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-2);
+}
+
+.expense {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 10px 4px;
+  border: 0;
+  border-radius: var(--radius-md);
+  background: none;
+  text-align: left;
+}
+
+.expense:active {
+  background: var(--field);
+}
+
+.expense-icon {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  background: var(--soft);
+  color: var(--on-soft);
+  font-weight: 800;
+}
+
+.expense-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.expense-title {
+  font-weight: 700;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.expense-meta {
+  font-size: 13px;
+  color: var(--text-2);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.expense-amount {
+  font-weight: 700;
+}
+
+.empty {
+  padding: 32px 16px;
+  text-align: center;
+  color: var(--text-2);
+}
+
+.empty .btn {
+  margin-top: 16px;
+}
+
+/* ---------- Кнопки и поля ---------- */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 48px;
+  padding: 0 22px;
+  border: 0;
+  border-radius: 999px;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.btn:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.btn-primary {
+  background: var(--primary);
+  color: var(--on-primary);
+}
+
+.btn-ghost {
+  background: var(--field);
+  color: var(--text);
+}
+
+.btn-danger {
+  background: none;
+  color: var(--danger);
+}
+
+.btn-block {
+  width: 100%;
+}
+
+.icon-btn {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 44px;
+  height: 44px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--card);
+  color: var(--text);
+  box-shadow: var(--shadow);
+}
+
+.icon-btn:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.link {
+  color: var(--text);
+  font-weight: 700;
+  font-size: 14px;
+  text-decoration: none;
+  background: none;
+  border: 0;
+  padding: 0;
+}
+
+.field {
+  display: grid;
+  gap: 8px;
+}
+
+.label {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-2);
+}
+
+.label .opt {
+  font-weight: 500;
+}
+
+/* 16px — меньше нельзя, иначе iPhone увеличивает страницу при вводе */
+.input,
+.select {
+  width: 100%;
+  min-height: 48px;
+  padding: 0 16px;
+  border: 2px solid transparent;
+  border-radius: var(--radius-md);
+  background: var(--field);
+  font-size: 16px;
+  outline: none;
+  appearance: none;
+}
+
+.input:focus,
+.select:focus {
+  border-color: var(--primary);
+}
+
+.select {
+  padding-right: 40px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' stroke='%234e655e' stroke-width='2' stroke-linecap='round' viewBox='0 0 24 24'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+}
+
+.amount-input {
+  min-height: 64px;
+  font-size: 32px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.error {
+  color: var(--danger);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+/* «Таблетки» для выбора */
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.chip {
+  min-height: 40px;
+  padding: 0 16px;
+  border: 2px solid var(--border);
+  border-radius: 999px;
+  background: none;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.chip.on {
+  border-color: transparent;
+  background: var(--primary);
+  color: var(--on-primary);
+}
+
+.chip-soft {
+  min-height: 34px;
+  padding: 0 12px;
+  border: 0;
+  background: var(--soft);
+  color: var(--on-soft);
+}
+
+/* Фильтры в списке */
+.filters {
+  display: grid;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+@media (min-width: 768px) {
+  .filters {
+    grid-template-columns: 2fr 1fr 1fr;
+  }
+}
+
+.month-switch {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.month-name {
+  min-width: 130px;
+  text-align: center;
+  font-weight: 700;
+}
+
+/* ---------- Выезжающая панель и диалоги ---------- */
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  background: var(--overlay);
+  animation: fade 0.15s;
+}
+
+.sheet {
+  width: 100%;
+  max-height: 92dvh;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 8px 20px calc(20px + env(safe-area-inset-bottom));
+  border-radius: 28px 28px 0 0;
+  background: var(--card);
+  animation: slide-up 0.2s ease-out;
+}
+
+.sheet-grip {
+  width: 40px;
+  height: 5px;
+  margin: 0 auto 12px;
+  border-radius: 999px;
+  background: var(--border);
+}
+
+.sheet-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.sheet-title {
+  font-size: 20px;
+  font-weight: 800;
+}
+
+.form {
+  display: grid;
+  gap: 20px;
+}
+
+/* Кнопка «Сохранить» прилипает к низу панели — не нужно листать */
+.form-actions {
+  --pad: calc(20px + env(safe-area-inset-bottom));
+  position: sticky;
+  bottom: calc(-1 * var(--pad));
+  display: grid;
+  gap: 4px;
+  margin: 0 -20px calc(-1 * var(--pad));
+  padding: 12px 20px var(--pad);
+  background: var(--card);
+  border-top: 1px solid var(--border);
+}
+
+@media (min-width: 768px) {
+  .form-actions {
+    --pad: 24px;
+  }
+}
+
+.dialog {
+  width: calc(100% - 32px);
+  max-width: 380px;
+  margin: auto;
+  padding: 24px;
+  border-radius: var(--radius-lg);
+  background: var(--card);
+  animation: fade 0.15s;
+}
+
+.dialog-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  margin-top: 20px;
+}
+
+@media (min-width: 768px) {
+  .overlay {
+    align-items: center;
+  }
+
+  .sheet {
+    max-width: 520px;
+    border-radius: 28px;
+    padding-bottom: 24px;
+  }
+
+  .sheet-grip {
+    display: none;
+  }
+}
+
+@keyframes fade {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes slide-up {
+  from {
+    transform: translateY(40px);
+    opacity: 0;
+  }
+}
+
+/* ---------- Первый запуск ---------- */
+
+.onboarding {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  max-width: 480px;
+  margin: 0 auto;
+  padding: calc(32px + env(safe-area-inset-top)) 20px calc(24px + env(safe-area-inset-bottom));
+  gap: 24px;
+}
+
+.onboarding h1 {
+  font-size: 30px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+}
+
+.add-row {
+  display: flex;
+  gap: 8px;
+}
+
+.add-row .btn {
+  flex: none;
+}
+
+.onboarding .btn-primary {
+  margin-top: auto;
+}

@@ -1,0 +1,70 @@
+/* Цвета обеих тем. Палитра — из design/6.jpg.
+   Весь сайт использует только эти переменные, поэтому тема меняется подменой набора. */
+
+:root {
+  --bg: #f4f6ef;
+  --card: #ffffff;
+  --field: #eef2e8;
+  --border: #dde5d8;
+  --text: #0c342c;
+  --text-2: #4e655e;
+  --primary: #076653;
+  --on-primary: #ffffff;
+  --hero: linear-gradient(135deg, #e3ef26 0%, #e2fbce 100%);
+  --on-hero: #0c342c;
+  --hero-track: rgba(12, 52, 44, 0.14);
+  --soft: #e2fbce;
+  --on-soft: #0c342c;
+  --danger: #c62828;
+  --shadow: 0 6px 24px rgba(12, 52, 44, 0.07);
+  --overlay: rgba(6, 35, 29, 0.45);
+
+  --radius-lg: 24px;
+  --radius-md: 16px;
+  --font: 'Manrope', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  color-scheme: light;
+}
+
+/* Тёмная тема: если в системе тёмная и пользователь не выбрал светлую вручную… */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --bg: #06231d;
+    --card: #0c342c;
+    --field: #12423a;
+    --border: #1d4c42;
+    --text: #fffdee;
+    --text-2: #a9c2b8;
+    --primary: #e3ef26;
+    --on-primary: #06231d;
+    --hero: #e3ef26;
+    --on-hero: #06231d;
+    --hero-track: rgba(6, 35, 29, 0.18);
+    --soft: #076653;
+    --on-soft: #fffdee;
+    --danger: #ff8a80;
+    --shadow: none;
+    --overlay: rgba(0, 0, 0, 0.6);
+    color-scheme: dark;
+  }
+}
+
+/* …или если тёмная выбрана вручную. */
+:root[data-theme='dark'] {
+  --bg: #06231d;
+  --card: #0c342c;
+  --field: #12423a;
+  --border: #1d4c42;
+  --text: #fffdee;
+  --text-2: #a9c2b8;
+  --primary: #e3ef26;
+  --on-primary: #06231d;
+  --hero: #e3ef26;
+  --on-hero: #06231d;
+  --hero-track: rgba(6, 35, 29, 0.18);
+  --soft: #076653;
+  --on-soft: #fffdee;
+  --danger: #ff8a80;
+  --shadow: none;
+  --overlay: rgba(0, 0, 0, 0.6);
+  color-scheme: dark;
+}
