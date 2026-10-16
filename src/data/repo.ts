@@ -257,6 +257,10 @@ export async function recentExpenses(limit: number): Promise<Expense[]> {
   return alive(items).sort(newestFirst).slice(0, limit);
 }
 
+export async function allExpenses(): Promise<Expense[]> {
+  return alive(await db.expenses.toArray());
+}
+
 export async function allTitles(): Promise<(string | null)[]> {
   return alive(await db.expenses.toArray()).map((e) => e.title);
 }
